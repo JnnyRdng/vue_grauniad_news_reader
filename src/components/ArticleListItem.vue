@@ -1,8 +1,15 @@
 <template>
-    <li v-on:mouseover="handleMouseOver" v-on:mouseleave="handleMouseLeave">{{ text }}</li>
+    <li
+        v-on:mouseover="handleMouseOver"
+        v-on:mouseleave="handleMouseLeave"
+        v-on:click="handleClick"
+    >{{ text }}</li>
 </template>
 
 <script>
+import { eventBus } from "@/main.js";
+import { Mutate } from "@/Mutate.js";
+
 export default {
     name: "article-list-item",
     props: ["article"],
@@ -18,30 +25,13 @@ export default {
         handleMouseLeave: function () {
             this.text = this.wrongHeadline;
         },
+        handleClick: function () {
+            eventBus.$emit("clicked-list-item", this.article);
+        },
     },
     computed: {
         wrongHeadline: function () {
-            const scrambler = function (original) {
-                const words = original.split(" ");
-                const newWords = words.map((word) => {
-                    let newWord = "";
-                    for (const char of word) {
-                        const random = Math.random();
-                        const newChar =
-                            random < 0.15 ? randomLetter(char) : char;
-                        newWord += newChar;
-                    }
-                    return newWord;
-                });
-                return newWords.join(" ");
-            };
-            const randomLetter = function (letter) {
-                const letters = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM".split(
-                    ""
-                );
-                return letters[Math.floor(Math.random() * letters.length)];
-            };
-            return scrambler(this.article.webTitle);
+            return Mutate.scramble(this.article.webTitle);
         },
     },
     mounted() {

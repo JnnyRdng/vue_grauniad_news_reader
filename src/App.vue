@@ -1,14 +1,21 @@
 <template>
     <div>
         <h1>The Grauniad</h1>
-        <ArticleList :articles="articles" />
+        <SearchForm />
+        <main>
+            <ArticleList :articles="articles" />
+            <ArticleDetail v-if="selectedArticle" :article="selectedArticle" />
+        </main>
     </div>
 </template>
 
 <script>
 import { API_KEY } from "@/api_key.js";
+import { eventBus } from "@/main.js";
 
 import ArticleList from "@/components/ArticleList";
+import ArticleDetail from "@/components/ArticleDetail";
+import SearchForm from "@/components/Search";
 export default {
     name: "App",
     data() {
@@ -20,11 +27,20 @@ export default {
     },
     components: {
         ArticleList,
+        ArticleDetail,
+        SearchForm,
     },
     methods: {
-        fetchData: function () {
+        fetchData: function (args = null) {
+            let urlArgs = "";
+            if (args) {
+                const keys = Object.keys(args);
+                keys.forEach((key) => {
+                    urlArgs += `${key}=${args[key]}&`;
+                });
+            }
             fetch(
-                `https://content.guardianapis.com/search?show-blocks=all&show-elements=image&api-key=${API_KEY}`
+                `https://content.guardianapis.com/search?${urlArgs}from-date=2014-02-16&page-size=50&page=1&show-blocks=all&show-elements=image&api-key=${API_KEY}`
             )
                 .then((response) => response.json())
                 .then((data) => {
@@ -36,28 +52,16 @@ export default {
                     // });
                 });
         },
-        // scrambler: function (original) {
-        //     const words = original.split(" ");
-        //     const newWords = words.map((word) => {
-        //         let newWord = "";
-        //         for (const char of word) {
-        //             const random = Math.random();
-        //             const newChar = random < 0.05 ? randomLetter() : char;
-        //             newWord += newChar;
-        //         }
-        //         return newWord;
-        //     });
-        //     return newWords.join(" ");
-        // },
-        // randomLetter: function () {
-        //     const letters = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM".split(
-        //         ""
-        //     );
-        //     return letters[Math.floor(Math.random() * letters.length)];
-        // },
     },
     mounted() {
         this.fetchData();
+        eventBus.$on(
+            "clicked-list-item",
+            (res) => (this.selectedArticle = res)
+        );
+        eventBus.$on("search", (res) => {
+            this.fetchData({ q: res });
+        });
     },
 };
 /* 
