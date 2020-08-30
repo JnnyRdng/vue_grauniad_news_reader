@@ -3,7 +3,7 @@
         <h1>The Grauniad</h1>
         <SearchForm />
         <main>
-            <ArticleList :articles="articles" />
+            <ArticleList :articles="articles" :searchParams="searchParams" />
             <ArticleDetail v-if="selectedArticle" :article="selectedArticle" />
         </main>
     </div>
@@ -23,6 +23,7 @@ export default {
             articles: [],
             selectedArticle: null,
             bodySummaries: [],
+            searchParams: { page: 1 },
         };
     },
     components: {
@@ -40,7 +41,7 @@ export default {
                 });
             }
             fetch(
-                `https://content.guardianapis.com/search?${urlArgs}from-date=2014-02-16&page-size=50&page=1&show-blocks=all&show-elements=image&api-key=${API_KEY}`
+                `https://content.guardianapis.com/search?${urlArgs}show-blocks=all&show-elements=images&api-key=${API_KEY}`
             )
                 .then((response) => response.json())
                 .then((data) => {
@@ -53,6 +54,11 @@ export default {
                 });
         },
     },
+    computed: {
+        pageNumber: function () {
+            return this.searchParams.page;
+        },
+    },
     mounted() {
         this.fetchData();
         eventBus.$on(
@@ -60,8 +66,16 @@ export default {
             (res) => (this.selectedArticle = res)
         );
         eventBus.$on("search", (res) => {
-            this.fetchData({ q: res });
+            console.log(res);
+            this.searchParams = res;
+            this.fetchData(this.searchParams);
         });
+        eventBus.$on("page-change", (res) => (this.searchParams.page = res));
+    },
+    watch: {
+        pageNumber: function () {
+            this.fetchData(this.searchParams);
+        },
     },
 };
 /* 
@@ -82,4 +96,12 @@ http://content.guardianapis.com/search?q=12%20years%20a%20slave&format=json&tag=
 </script>
 
 <style>
+body {
+    font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
+    scroll-behavior: smooth;
+}
+main {
+    /* display: grid;
+    grid-template-columns: 1fr 1fr; */
+}
 </style>

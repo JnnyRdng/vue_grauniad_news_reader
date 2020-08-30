@@ -4,12 +4,13 @@
             <h2>{{article.webTitle}}</h2>
             <p>{{timeToRead}}</p>
         </header>
-        <main>{{ summary }}</main>
+        <main id="articleBody" v-dragscroll>{{ summary }}</main>
     </article>
 </template>
 
 <script>
 import { Mutate } from "@/Mutate.js";
+import { eventBus } from "@/main.js";
 export default {
     name: "article-detail",
     props: ["article"],
@@ -32,5 +33,17 @@ export default {
 };
 </script>
 
-<style>
+<style >
+#articleBody {
+    column-count: 4;
+    column-fill: auto;
+    column-width: 300px;
+    column-gap: 40px;
+    height: 600px;
+    overflow-y: hidden;
+    overflow-x: auto;
+    cursor: grab;
+    text-align: justify;
+}
 </style>
+

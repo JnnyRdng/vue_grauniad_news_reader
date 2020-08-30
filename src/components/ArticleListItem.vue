@@ -46,4 +46,7 @@ export default {
 </script>
 
 <style>
+li {
+    margin: 10px 0px;
+}
 </style>
