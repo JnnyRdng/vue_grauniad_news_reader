@@ -2,9 +2,21 @@
     <div>
         <h1>The Grauniad</h1>
         <SearchForm />
-        <main>
-            <ArticleList :articles="articles" :searchParams="searchParams" />
-            <ArticleDetail v-if="selectedArticle" :article="selectedArticle" />
+        <input
+            type="button"
+            value="Reading List"
+            :disabled="!readLater.length"
+            v-on:click="toggleReadingList"
+        />
+        <ReadLaterList v-if="showReadLater" :readLater="readLater" />
+        <main v-if="!showReadLater">
+            <ArticleList v-if="articles" :articles="articles" :searchParams="searchParams" />
+            <ArticleDetail
+                v-if="selectedArticle"
+                :article="selectedArticle"
+                :readLater="readLater"
+            />
+            <div v-else>No selected article to display</div>
         </main>
     </div>
 </template>
@@ -16,42 +28,45 @@ import { eventBus } from "@/main.js";
 import ArticleList from "@/components/ArticleList";
 import ArticleDetail from "@/components/ArticleDetail";
 import SearchForm from "@/components/Search";
+import ReadLaterList from "@/components/ReadLaterList";
 export default {
     name: "App",
     data() {
         return {
-            articles: [],
+            articles: null,
             selectedArticle: null,
             bodySummaries: [],
             searchParams: { page: 1 },
+            readLater: [],
+            showReadLater: false,
         };
     },
     components: {
         ArticleList,
         ArticleDetail,
         SearchForm,
+        ReadLaterList,
     },
     methods: {
-        fetchData: function (args = null) {
-            let urlArgs = "";
-            if (args) {
-                const keys = Object.keys(args);
-                keys.forEach((key) => {
-                    urlArgs += `${key}=${args[key]}&`;
-                });
-            }
-            fetch(
-                `https://content.guardianapis.com/search?${urlArgs}show-blocks=all&show-elements=images&api-key=${API_KEY}`
-            )
+        fetchData: function (apiArgs) {
+            const baseUrl = "https://content.guardianapis.com/search?";
+            let searchArgs = "";
+            const keys = Object.keys(apiArgs);
+            keys.forEach((key) => (searchArgs += `${key}=${apiArgs[key]}&`));
+            const defaultArgs = `show-blocks=all&show-fields=all&api-key=${API_KEY}`;
+            fetch(`${baseUrl}${searchArgs}${defaultArgs}`)
                 .then((response) => response.json())
                 .then((data) => {
                     const DATA = data.response.results;
-                    console.log(DATA);
-                    this.articles = DATA;
-                    // this.bodySummaries = DATA.map((article) => {
-                    //   return article.blocks.body.map((body) => body.bodyTextSummary)[0];
-                    // });
+                    console.log(data.response);
+                    this.articles = data.response;
+                    for (let i = 0; i < 4; i++) {
+                        this.readLater.push(DATA[i]);
+                    }
                 });
+        },
+        toggleReadingList: function () {
+            this.showReadLater = !this.showReadLater;
         },
     },
     computed: {
@@ -60,7 +75,7 @@ export default {
         },
     },
     mounted() {
-        this.fetchData();
+        this.fetchData(this.searchParams);
         eventBus.$on(
             "clicked-list-item",
             (res) => (this.selectedArticle = res)
@@ -71,6 +86,19 @@ export default {
             this.fetchData(this.searchParams);
         });
         eventBus.$on("page-change", (res) => (this.searchParams.page = res));
+        eventBus.$on("add-read-later", (res) => this.readLater.push(res));
+        eventBus.$on("remove-read-later", (res) => {
+            const updatedList = this.readLater.filter(
+                (article) => article !== res
+            );
+            this.readLater = updatedList;
+        });
+        eventBus.$on("toggle-read-later", () => this.toggleReadingList());
+        eventBus.$on("clear-read-later", () => {
+            this.toggleReadingList();
+            this.readLater = [];
+        });
+        eventBus.$on("close-article", () => (this.selectedArticle = null));
     },
     watch: {
         pageNumber: function () {
