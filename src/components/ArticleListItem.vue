@@ -3,7 +3,12 @@
         v-on:mouseover="handleMouseOver"
         v-on:mouseleave="handleMouseLeave"
         v-on:click="handleClick"
-    >{{ text }}</li>
+    >
+        <div>
+            <span>{{article.sectionName}}</span>
+            {{ text }}
+        </div>
+    </li>
 </template>
 
 <script>
@@ -48,5 +53,18 @@ export default {
 <style>
 li {
     margin: 10px 0px;
+    font-family: "headline-gothic-atf";
+    font-size: 1.5em;
+    color: white;
+    background-color: black;
+    padding: 5px 20px;
+    cursor: pointer;
+}
+li:hover {
+    color: lightgrey;
+}
+li > div > span {
+    color: darkgrey;
+    margin-right: 20px;
 }
 </style>

@@ -8,7 +8,7 @@ Scrambler.prototype.scramble = function (original) {
             newWord += newChar;
         }
         return this.randomSwap(newWord);
-        return newWord;
+        // return newWord;
     });
     return newWords.join(" ");
 }
@@ -28,13 +28,13 @@ Scrambler.prototype.randomLetter = function (letter) {
 
 Scrambler.prototype.randomSwap = function (word) {
     const random = Math.random();
-    if (random < 0.05 && word.length > 5) {
-        const randomIndex1 = Math.floor(
-            Math.random() * word.length
+    if (random < 0.15 && word.length > 5) {
+        const randomIndex1 = Math.ceil(
+            Math.random() * (word.length - 2)
         );
         let randomIndex2 = randomIndex1;
         while (randomIndex1 === randomIndex2) {
-            randomIndex2 = Math.floor(Math.random() * word.length);
+            randomIndex2 = Math.ceil(Math.random() * (word.length - 2));
         }
         const min = Math.min(randomIndex1, randomIndex2);
         const max = Math.max(randomIndex1, randomIndex2);

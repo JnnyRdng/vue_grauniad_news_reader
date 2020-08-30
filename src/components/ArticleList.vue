@@ -1,11 +1,20 @@
 <template>
     <main>
         <ul>
-            <ArticleListItem v-for="(article, index) in articles" :key="index" :article="article" />
+            <ArticleListItem
+                v-for="(article, index) in articles.results"
+                :key="index"
+                :article="article"
+            />
         </ul>
-        <input type="button" v-on:click="pageBack" :disabled="searchParams.page < 2" value="<" />
-        <span>{{ searchParams.page }}</span>
-        <input type="button" v-on:click="pageForward" :disabled="articles.length < 10" value=">" />
+        <input type="button" v-on:click="pageBack" :disabled="articles.currentPage < 2" value="<" />
+        <span>{{ articles.currentPage }} out of {{ articles.pages }} pages</span>
+        <input
+            type="button"
+            v-on:click="pageForward"
+            :disabled="articles.currentPage === articles.pages"
+            value=">"
+        />
     </main>
 </template>
 
@@ -14,16 +23,16 @@ import { eventBus } from "@/main.js";
 import ArticleListItem from "@/components/ArticleListItem";
 export default {
     name: "article-list",
-    props: ["articles", "searchParams"],
+    props: ["articles"],
     components: {
         ArticleListItem,
     },
     methods: {
         pageBack: function () {
-            eventBus.$emit("page-change", this.searchParams.page - 1);
+            eventBus.$emit("page-change", this.articles.currentPage - 1);
         },
         pageForward: function () {
-            eventBus.$emit("page-change", this.searchParams.page + 1);
+            eventBus.$emit("page-change", this.articles.currentPage + 1);
         },
     },
     computed: {},
